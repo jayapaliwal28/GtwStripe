@@ -36,16 +36,17 @@ class PaymentsController extends AppController {
 									'transaction_type_id' => 1,
 									'fixed_price' => 1,
 									'stripe' => $charge
-								);
-					$transaction =  $this->Transaction->addTransaction($arrDetail);
+								);                    
 					$redirectUrl = $this->referer();
 					if($charge->paid){
+                        $transaction =  $this->Transaction->addTransaction($arrDetail);
 						$this->Session->setFlash(__('Payment process has been successfully completed'), 'alert', array(
 								'plugin' => 'BoostCake',
 								'class' => 'alert-success'
 							));
 						if(!empty($this->request->data['Stripe']['success_url'])){
-							$redirectUrl = $this->request->data['Stripe']['success_url'].'/transaction:'.$transaction['Transaction']['id'] ;
+                            $this->Transac = $this->Components->load('GtwStripe.Transac');
+							$redirectUrl = $this->request->data['Stripe']['success_url'].'/transaction:'.$this->Transac->setLastTransaction($transaction);
 						}
 					}else{
 						$this->Session->setFlash(__('Unable to process your payment request, Please try again.'), 'alert', array(
