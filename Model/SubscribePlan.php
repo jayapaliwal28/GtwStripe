@@ -73,5 +73,19 @@ class SubscribePlan extends AppModel {
         ),
     );
     
+    var $hasMany = array(
+        'SubscribePlanUser' => array(
+            'className' => 'SubscribePlanUser',
+            'foreignKey' => 'plan_id',
+        )
+    );
     
+    function getPlanDetail($planId=null){
+        if(!empty($planId)){
+            $this->recursive = -1;
+            return ($this->findByPlanId($planId));
+        }
+        return false;
+    }
+
 }

@@ -7,6 +7,7 @@
 App::uses('AppController', 'Controller');
 class SubscribePlansController extends AppController {
     var $name= "SubscribePlans";
+    public $uses = array('GtwStripe.Transaction','GtwStripe.SubscribePlan','GtwStripe.UserCustomer','GtwStripe.SubscribePlanUser');
 
     public function beforeFilter() {
         if (CakePlugin::loaded('GtwUsers')) {
@@ -45,7 +46,7 @@ class SubscribePlansController extends AppController {
             $name=$this->request->data['SubscribePlan']['name'];
             if(empty($planId)){
                 $plan_id=$this->request->data['SubscribePlan']['plan_id'];
-                $amount=$this->request->data['SubscribePlan']['amount'] * 100;
+                $amount=$this->request->data['SubscribePlan']['amount'];
                 $interval=$this->request->data['SubscribePlan']['plan_interval'];
                 $interval_count=$this->request->data['SubscribePlan']['interval_count'];
                 $status=$this->request->data['SubscribePlan']['status'];
@@ -78,7 +79,7 @@ class SubscribePlansController extends AppController {
                     if (empty($planId)) {
                         //create new plan
                         Stripe_Plan::create(array(
-                            'amount' => $amount,
+                            'amount' => $amount * 100,
                             'interval' => $interval,
                             'interval_count' => $interval_count,
                             'name' => $name,
@@ -113,16 +114,19 @@ class SubscribePlansController extends AppController {
     public function user_subscribe(){
         $this->__setStripe();
         $customerId=ClassRegistry::init('GtwStripe.UserCustomer')->getCustomerStripeId($this->Session->read('Auth.User.id'));
-        $subscribes=Stripe_Customer::retrieve($customerId)->subscriptions->all();
-        $subscribePlans=array();
-        foreach ($subscribes->data as $key => $subscribe) {
-            $subscribePlans[]=array(
-                'plan_id' => $subscribe->plan->id,
-                'plan_name' => $subscribe->plan->name,
-                'created' => date("Y-m-d H:i:s", $subscribe->plan->created),
-                'subscribe_id' => $subscribe->id
-            );
-        }
+	$subscribePlans=array();
+	if($customerId){
+		$subscribes=Stripe_Customer::retrieve($customerId)->subscriptions->all();
+		foreach ($subscribes->data as $key => $subscribe) {
+		    $subscribePlans[]=array(
+		        'plan_id' => $subscribe->plan->id,
+		        'plan_name' => $subscribe->plan->name,
+		        'created' => date("Y-m-d H:i:s", $subscribe->plan->created),
+		        'subscribe_id' => $subscribe->id
+		    );
+		}	
+	}
+
         $this->set(compact('subscribePlans'));
         $this->set('subscribes',ClassRegistry::init('Transaction')->find('all',array('conditions'=>array('Transaction.user_id'=>$this->Session->read('Auth.User.id'),'Transaction.transaction_type_id'=>2))));
     }
@@ -133,6 +137,8 @@ class SubscribePlansController extends AppController {
             $customerId=ClassRegistry::init('GtwStripe.UserCustomer')->getCustomerStripeId($this->Session->read('Auth.User.id'));
             $subscribeStatus = Stripe_Customer::retrieve($customerId)->subscriptions->retrieve($subscribeId)->cancel();
             if($subscribeStatus->status == "canceled"){
+                $planDetail = $this->SubscribePlan->getPlanDetail($subscribeStatus->plan->id);
+                $response= $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'],  $this->Session->read('Auth.User.id'),'fail');
                 $this->Session->setFlash(__('This Plan has been unsubscribe successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
             }else{
                 $this->Session->setFlash(__('Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
@@ -141,6 +147,91 @@ class SubscribePlansController extends AppController {
             $this->Session->setFlash(__('Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
         }
         $this->redirect($this->referer());
+    }
+    
+    public function usertransaction($planId=null){
+        if(empty($planId)){
+            $this->Session->setFlash(__('Invalid plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+            $this->redirect($this->referer());
+        }
+        $planUsers=$this->SubscribePlan->findByPlanId($planId);
+        $this->loadModel('GtwUsers.User');
+	$this->User->virtualFields = array('name' => 'CONCAT(User.first, " ",User.last)');
+        $userList = $this->User->find('list',array('fields'=>array('User.id','User.name')));
+        $title= $planUsers['SubscribePlan']['plan_id'] . ' plan ('. $planUsers['SubscribePlan']['name'] .') users';
+        $backUrl = Router::url(array('controller'=>'subscribe_plans','action'=>'index'),true);
+        $this->set(compact('title','backUrl','planUsers','userList'));
+    }
+    
+    public function myplantransaction($planId=null,$userId=null,$allTransaction=false) {
+        $conditions=array(
+            'Transaction.paid' => 1,
+            'Transaction.transaction_type_id'=>2,
+        );
+        if($allTransaction){
+            unset($conditions['Transaction.user_id']);
+        }
+        if(!empty($planId)){
+            $conditions['Transaction.plan_id']=$planId;
+        }
+        if(!empty($userId)){
+            $conditions['Transaction.user_id'] = $this->Session->read('Auth.User.id');
+        }
+        if(empty($planId) && empty($userId) && empty($allTransaction)){
+            $conditions['Transaction.user_id'] = $this->Session->read('Auth.User.id');
+        }
+        $this->paginate = array(
+            'Transaction' => array(
+                'fields' => array(
+                    'Transaction.*',
+                    'TransactionType.name',
+                    'User.id',
+                    'User.first',
+                    'User.last',
+                ),
+                'conditions' => $conditions,
+                'contain' => array(
+                    'UserModel'
+                ),
+                'order' => 'Transaction.created DESC'
+            )
+        );
+        $this->set('transactions', $this->paginate('Transaction'));
+        $all=false;
+        if(empty($planId)){
+            $all=true;
+        }
+        $this->set(compact('all'));
+        $planDetail=$this->SubscribePlan->findByPlanId($planId);
+        $title= ' Transactions ' . (empty($planDetail)?'':('for '.$planDetail['SubscribePlan']['plan_id'] .' plan'));
+        if(empty($planId) && empty($userId) && empty($allTransaction)){
+            $title='My Transactions';
+        }
+        $backUrl = Router::url($this->referer(),true);
+        $this->set(compact('planDetail','title','allTransaction','backUrl'));
+    }
+    
+    function subscribeslist(){
+        $customerId=ClassRegistry::init('GtwStripe.UserCustomer')->getCustomerStripeId($this->Session->read('Auth.User.id'));
+        $arrSubscribePlans=array();
+        if($customerId){
+            try{
+                $customer=Stripe_Customer::retrieve($customerId);
+                if(!empty($customer->subscriptions)){
+                    $subscribes=Stripe_Customer::retrieve($customerId)->subscriptions->all();
+                    $plans=ClassRegistry::init('GtwStripe.SubscribePlan')->find('list',array('fields'=>array('plan_id','plan_id')));
+                    foreach ($subscribes->data as $key => $subscribe) {
+                        if(in_array($subscribe->plan->id, $plans) ){
+                            $arrSubscribePlans[$subscribe->plan->id]= $subscribe->id;
+                        }
+                    }
+                }
+            }  catch (Exception $ex){
+                
+            }
+        }
+        $this->set(compact('arrSubscribePlans'));
+        $this->set('plans',ClassRegistry::init('GtwStripe.SubscribePlan')->find('all'));
     }
     
 }

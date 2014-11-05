@@ -49,7 +49,7 @@ class Transaction extends AppModel {
     }
 
     function afterTransaction($transaction = array()) {
-        //We can maintain our after Payment process here
+        //We can maintain our after Payment process here        
     }
 
     function getTransactionDetail($transactionId = 0) {
@@ -57,6 +57,37 @@ class Transaction extends AppModel {
                     'fields' => array('Transaction.*', 'User.first', 'User.last', 'User.email', 'TransactionType.name'),
                     'conditions' => array('Transaction.id' => $transactionId, 'Transaction.captured' => 1)
         ));
+    }
+    
+    function addTransactionSubscribe($arrDetail=array()){
+        if(!empty($arrDetail)){
+            $customer_id =  $arrDetail->data->object->customer;
+            $paid =  $arrDetail->data->object->paid;
+            $charge_date =  date('Y-m-d H:i:s',$arrDetail->data->object->date);
+            foreach ($arrDetail->data->object->lines->data as $key => $value) {
+                $conditions = array(
+                    'transaction_type_id' => 2,
+                    'plan_id' => $value->plan->id,
+                    'customer_id' => $customer_id
+                );
+                $oldTransaction =$this->find('first',array('conditions'=>$conditions));
+                if(!empty($oldTransaction)){
+                    unset($oldTransaction['Transaction']['id']);
+                    $oldTransaction['Transaction']['transaction_id'] =$arrDetail->data->object->charge;
+                    $oldTransaction['Transaction']['paid'] = $paid;
+                    $this->save($oldTransaction);
+                    $planData = array(
+                        'plan_id' => $value->plan->id,
+                        'last_charged' => $charge_date,
+                        'customer_id' => $customer_id,
+                        'status' => ($paid)?'active':'fail'
+                    );
+                    ClassRegistry::init('GtwStripe.SubscribePlanUser')->updateSubscribePlan($planData);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
 }

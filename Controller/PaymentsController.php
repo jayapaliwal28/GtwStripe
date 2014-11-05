@@ -7,12 +7,26 @@
  */
 class PaymentsController extends AppController {
     public $name = 'Payments';
-    public $uses = array('GtwStripe.Transaction','GtwStripe.SubscribePlan','GtwStripe.UserCustomer');
+    public $uses = array('GtwStripe.Transaction','GtwStripe.SubscribePlan','GtwStripe.UserCustomer','GtwStripe.SubscribePlanUser');
 
     public function beforeFilter() {
         if (CakePlugin::loaded('GtwUsers')) {
             $this->layout = 'GtwUsers.users';
         }
+	$this->Auth->allow('callback_subscribes');
+    }
+    
+    public function callback_subscribes(){
+        $this->__setStripe();
+		$input = @file_get_contents("php://input");
+		$event_json = json_decode($input);
+        /*$fileName="transaction_".$event_json->data->object->customer.".txt";
+        $myfile = fopen(TMP.$fileName, "w");
+		fwrite($myfile, "datatttt  ");
+        fwrite($myfile, print_r($event_json, TRUE));
+        fclose($myfile);*/
+        $this->Transaction->addTransactionSubscribe($event_json);
+        exit;
     }
 
     public function one_time_payment() {
@@ -87,21 +101,18 @@ class PaymentsController extends AppController {
                     $subscribe->currency=$subscribe->plan->currency;
                     $subscribe->card = (object) array('name'=>$customer->cards->data[0]->name,'brand'=>$customer->cards->data[0]->brand,'last4'=>$customer->cards->data[0]->last4);
                     $subscribe->amount=$subscribe->plan->amount;
-                    $charge = Stripe_Charge::create(array(
-                                'customer' => $customer->id,
-                                'amount' => $subscribe->plan->amount,
-                                'currency' => Configure::read('GtwStripe.currency')
-                    ));
                     $arrDetail = array(
                         'transaction_type_id' => 2,
                         'fixed_price' => 1,
                         'plan_id' => $this->request->data['GtwStripe']['plan_id'],
                         'plan_name' => $subscribe->plan->name,
-                        'stripe' => $charge
+                        'stripe' => $subscribe
                     );
                     $redirectUrl = $this->referer();
                     if ($subscribe->paid) {
                         $transaction = $this->Transaction->addTransaction($arrDetail);
+                        $planDetail = $this->SubscribePlan->getPlanDetail($arrDetail['plan_id']);
+                        $response= $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'],  $this->Session->read('Auth.User.id'));
                         $this->Session->setFlash(__('Subscribe has been successfully completed'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-success'
@@ -187,7 +198,17 @@ class PaymentsController extends AppController {
         
     }
 
-    public function index() {
+    public function index($planId=null,$userId=null) {
+        $conditions=array(
+            'Transaction.paid' => 1,
+        );
+        if(!empty($planId)){
+            $conditions['Transaction.plan_id']=$planId;
+            $conditions['Transaction.user_id'] = $this->Session->read('Auth.User.id');
+        }
+        if(!empty($userId)){
+            $conditions['Transaction.user_id']=$userId;
+        }
         $this->paginate = array(
             'Transaction' => array(
                 'fields' => array(
@@ -197,7 +218,7 @@ class PaymentsController extends AppController {
                     'User.first',
                     'User.last',
                 ),
-                'conditions' => array('Transaction.paid' => 1),
+                'conditions' => $conditions,
                 'contain' => array(
                     'UserModel'
                 ),
@@ -206,7 +227,7 @@ class PaymentsController extends AppController {
         );
         $this->set('transactions', $this->paginate('Transaction'));
     }
-
+    
     private function __setStripe() {
         App::import('Vendor', 'GtwStripe.Stripe', array('file' => 'stripe' . DS . 'lib' . DS . 'Stripe.php'));
         Stripe::setApiKey(Configure::read('GtwStripe.secret_key'));
