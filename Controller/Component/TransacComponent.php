@@ -19,6 +19,11 @@ class TransacComponent extends Component {
 	function getLastTransaction($key){
         $transaction = $this->Session->read($key);
         $this->Session->delete($key);
+        if(!empty($transaction['Transaction']['user_id'])){
+            ClassRegistry::init('User')->recursive = -1;
+            $transaction['User'] = ClassRegistry::init('User')->findById($transaction['Transaction']['user_id']);
+            $transaction['User'] = $transaction['User']['User'];
+        }
         return $transaction;
 	}
 }

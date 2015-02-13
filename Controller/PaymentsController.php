@@ -13,7 +13,7 @@ class PaymentsController extends AppController {
         if (CakePlugin::loaded('GtwUsers')) {
             $this->layout = 'GtwUsers.users';
         }
-	$this->Auth->allow('callback_subscribes');
+	$this->Auth->allow('callback_subscribes','one_time_payment_set_amount','one_time_payment','success','fail','confirm_payment');
     }
     
     public function callback_subscribes(){
@@ -182,7 +182,8 @@ class PaymentsController extends AppController {
 
     public function success() {
         if (isset($this->request->named['transaction'])) {
-            $transactionDetail = $this->Transaction->getTransactionDetail($this->request->named['transaction']);
+            $this->Transac = $this->Components->load('GtwStripe.Transac');
+            $transactionDetail = $this->Transac->getLastTransaction($this->request->named['transaction']);
             $this->set('transactionId', $this->request->named['transaction']);
             $this->set('transactionDetail', $transactionDetail);
         } else {
@@ -228,6 +229,16 @@ class PaymentsController extends AppController {
         $this->set('transactions', $this->paginate('Transaction'));
     }
     
+    public function confirm_payment(){
+        if(empty($this->request->data['order']['amount'])){
+            $this->Session->setFlash(__('Invalid Amount'), 'alert', array(
+                'plugin' => 'BoostCake',
+                'class' => 'alert-danger'
+            ));
+            $this->redirect($this->referer());
+        }
+        $this->set('amount',$this->request->data['order']['amount']);
+    }
     private function __setStripe() {
         App::import('Vendor', 'GtwStripe.Stripe', array('file' => 'stripe' . DS . 'lib' . DS . 'Stripe.php'));
         Stripe::setApiKey(Configure::read('GtwStripe.secret_key'));

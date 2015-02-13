@@ -5,4 +5,8 @@ Configure::write( array(
     'GtwStripe.site_name' 		=> 'Gtw Stripe',
     'GtwStripe.site_logo_path' 	=> '',
     'GtwStripe.currency' 		=> 'USD',
+    'GtwStripe.Invoive.CompanyName' => '',
+    'GtwStripe.Invoive.address' => '',
+    'GtwStripe.Invoive.email' => '',
+    'GtwStripe.Invoive.phone' => '',
 ));

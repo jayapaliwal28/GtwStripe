@@ -1,5 +1,4 @@
 <?php
-if($this->Session->read('Auth.User.id')){
 	$defaultOptions = 	array(
 					'label'=>'',
 					'panel-label'=>'',
@@ -29,7 +28,3 @@ if($this->Session->read('Auth.User.id')){
 		echo $this->Form->input('success_url',array('type'=>'hidden','value'=>$options['success-url']));
 		echo $this->Form->input('fail_url',array('type'=>'hidden','value'=>$options['fail-url']));
 	echo $this->Form->end();
-}else{
-?>
-	<label class='label label-warning '><?php echo __('Please login to %s',$options['label']);?></label>
-<?php } ?>
