@@ -8,6 +8,7 @@
 App::uses('Component', 'Controller');
 class TransacComponent extends Component {
 	public $components = array('Session');
+        public $uses = array('User');
     public function initialize(Controller $controller){
         $this->Controller = $controller;
     }

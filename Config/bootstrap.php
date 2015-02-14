@@ -9,4 +9,5 @@ Configure::write( array(
     'GtwStripe.Invoive.address' => '',
     'GtwStripe.Invoive.email' => '',
     'GtwStripe.Invoive.phone' => '',
+    'GtwStripe.PaymentUsingAPI' => true,
 ));
