@@ -23,8 +23,14 @@ class Transaction extends AppModel {
     );
 
     function addTransaction($arrDetail = array()) {
+        $userId = CakeSession::check('Auth.User.id');
+        if($userId){
+           $userId = CakeSession::read('Auth.User.id');
+        } else {
+            $userId = 0;
+        }
         $arrTransaction = array(
-            'user_id' => CakeSession::read('Auth.User.id'),
+            'user_id' => $userId,
             'transaction_type_id' => $arrDetail['transaction_type_id'],
             'fixed_price' => $arrDetail['fixed_price'],
             'amount' => ($arrDetail['stripe']->amount / 100), // Convert to amount

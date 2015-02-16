@@ -7,24 +7,24 @@
  */
 class PaymentsController extends AppController {
     public $name = 'Payments';
-    public $uses = array('GtwStripe.Transaction','GtwStripe.SubscribePlan','GtwStripe.UserCustomer','GtwStripe.SubscribePlanUser');
+    public $uses = array('GtwStripe.Transaction', 'GtwStripe.SubscribePlan', 'GtwStripe.UserCustomer', 'GtwStripe.SubscribePlanUser');
 
     public function beforeFilter() {
         if (CakePlugin::loaded('GtwUsers')) {
             $this->layout = 'GtwUsers.users';
         }
-	$this->Auth->allow('callback_subscribes');
+        $this->Auth->allow('callback_subscribes', 'one_time_payment_set_amount', 'one_time_payment', 'success', 'fail', 'confirm_payment');
     }
-    
-    public function callback_subscribes(){
+
+    public function callback_subscribes() {
         $this->__setStripe();
-		$input = @file_get_contents("php://input");
-		$event_json = json_decode($input);
-        /*$fileName="transaction_".$event_json->data->object->customer.".txt";
-        $myfile = fopen(TMP.$fileName, "w");
-		fwrite($myfile, "datatttt  ");
-        fwrite($myfile, print_r($event_json, TRUE));
-        fclose($myfile);*/
+        $input = @file_get_contents("php://input");
+        $event_json = json_decode($input);
+        /* $fileName="transaction_".$event_json->data->object->customer.".txt";
+          $myfile = fopen(TMP.$fileName, "w");
+          fwrite($myfile, "datatttt  ");
+          fwrite($myfile, print_r($event_json, TRUE));
+          fclose($myfile); */
         $this->Transaction->addTransactionSubscribe($event_json);
         exit;
     }
@@ -94,13 +94,13 @@ class PaymentsController extends AppController {
                 $amount = $this->Session->read($amountKey);
                 try {
                     // Create a Customer / get customer
-                    $customerId = $this->getCustomerId($this->Session->read('Auth.User.id'),$this->request->data['stripeEmail'],$this->request->data['stripeToken']);
-                    $customer=Stripe_Customer::retrieve($customerId);
+                    $customerId = $this->getCustomerId($this->Session->read('Auth.User.id'), $this->request->data['stripeEmail'], $this->request->data['stripeToken']);
+                    $customer = Stripe_Customer::retrieve($customerId);
                     $subscribe = $customer->subscriptions->create(array("plan" => $this->request->data['GtwStripe']['plan_id']));
-                    $subscribe->paid=($subscribe->status=='active')?1:0;
-                    $subscribe->currency=$subscribe->plan->currency;
-                    $subscribe->card = (object) array('name'=>$customer->cards->data[0]->name,'brand'=>$customer->cards->data[0]->brand,'last4'=>$customer->cards->data[0]->last4);
-                    $subscribe->amount=$subscribe->plan->amount;
+                    $subscribe->paid = ($subscribe->status == 'active') ? 1 : 0;
+                    $subscribe->currency = $subscribe->plan->currency;
+                    $subscribe->card = (object) array('name' => $customer->cards->data[0]->name, 'brand' => $customer->cards->data[0]->brand, 'last4' => $customer->cards->data[0]->last4);
+                    $subscribe->amount = $subscribe->plan->amount;
                     $arrDetail = array(
                         'transaction_type_id' => 2,
                         'fixed_price' => 1,
@@ -112,7 +112,7 @@ class PaymentsController extends AppController {
                     if ($subscribe->paid) {
                         $transaction = $this->Transaction->addTransaction($arrDetail);
                         $planDetail = $this->SubscribePlan->getPlanDetail($arrDetail['plan_id']);
-                        $response= $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'],  $this->Session->read('Auth.User.id'));
+                        $response = $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'], $this->Session->read('Auth.User.id'));
                         $this->Session->setFlash(__('Subscribe has been successfully completed'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-success'
@@ -143,16 +143,16 @@ class PaymentsController extends AppController {
         $this->redirect($this->referer());
     }
 
-    function getCustomerId($userId=null,$stripeEmail=null,$stripeToken=null){
-        if(!empty($userId)){
-            $userCustomer=  $this->UserCustomer->find('first',array('conditions'=>array('UserCustomer.user_id'=>$userId)));
-            if(!empty($userCustomer)){
+    function getCustomerId($userId = null, $stripeEmail = null, $stripeToken = null) {
+        if (!empty($userId)) {
+            $userCustomer = $this->UserCustomer->find('first', array('conditions' => array('UserCustomer.user_id' => $userId)));
+            if (!empty($userCustomer)) {
                 return $userCustomer['UserCustomer']['customer_id'];
-            }else{
-                if(!empty($stripeEmail) && !empty($stripeToken)){
+            } else {
+                if (!empty($stripeEmail) && !empty($stripeToken)) {
                     $customer = Stripe_Customer::create(array(
-                        'email' => $stripeEmail,
-                        'card' => $stripeToken
+                                'email' => $stripeEmail,
+                                'card' => $stripeToken
                     ));
                     $arrCustomer['UserCustomer'] = array(
                         'user_id' => $userId,
@@ -165,7 +165,7 @@ class PaymentsController extends AppController {
         }
         return false;
     }
-    
+
     public function one_time_payment_set_amount() {
         if ($this->request->is('requested')) {
             $amountKey = md5($this->request->named['amount']);
@@ -182,7 +182,8 @@ class PaymentsController extends AppController {
 
     public function success() {
         if (isset($this->request->named['transaction'])) {
-            $transactionDetail = $this->Transaction->getTransactionDetail($this->request->named['transaction']);
+            $this->Transac = $this->Components->load('GtwStripe.Transac');
+            $transactionDetail = $this->Transac->getLastTransaction($this->request->named['transaction']);
             $this->set('transactionId', $this->request->named['transaction']);
             $this->set('transactionDetail', $transactionDetail);
         } else {
@@ -198,16 +199,16 @@ class PaymentsController extends AppController {
         
     }
 
-    public function index($planId=null,$userId=null) {
-        $conditions=array(
+    public function index($planId = null, $userId = null) {
+        $conditions = array(
             'Transaction.paid' => 1,
         );
-        if(!empty($planId)){
-            $conditions['Transaction.plan_id']=$planId;
+        if (!empty($planId)) {
+            $conditions['Transaction.plan_id'] = $planId;
             $conditions['Transaction.user_id'] = $this->Session->read('Auth.User.id');
         }
-        if(!empty($userId)){
-            $conditions['Transaction.user_id']=$userId;
+        if (!empty($userId)) {
+            $conditions['Transaction.user_id'] = $userId;
         }
         $this->paginate = array(
             'Transaction' => array(
@@ -227,7 +228,54 @@ class PaymentsController extends AppController {
         );
         $this->set('transactions', $this->paginate('Transaction'));
     }
-    
+
+    public function confirm_payment() {
+        $this->__setStripe();
+        
+        if (!empty($this->request->data['stripeToken']) && !empty($this->request->data['payment'])) {
+            try {
+                $customer = Stripe_Customer::create(array(
+                            'email' => $this->request->data['payment']['email'],
+                            'card' => $this->request->data['stripeToken']
+                ));
+
+                $charge = Stripe_Charge::create(array(
+                            'customer' => $customer->id,
+                            'amount' => ((float) $this->request->data['payment']['amount']) * 100,
+                            'currency' => Configure::read('GtwStripe.currency')
+                ));
+                $arrDetail = array(
+                    'transaction_type_id' => 1,
+                    'fixed_price' => 1,
+                    'stripe' => $charge
+                );
+                $redirectUrl = $this->referer();
+                if ($charge->paid) {
+                    $transaction = $this->Transaction->addTransaction($arrDetail);
+                    $this->Session->setFlash(__('Payment process has been successfully completed'), 'alert', array(
+                        'plugin' => 'BoostCake',
+                        'class' => 'alert-success'
+                    ));
+                    if (!empty($this->request->data['payment']['success_url'])) {
+                        $this->Transac = $this->Components->load('GtwStripe.Transac');
+                        $redirectUrl = $this->request->data['payment']['success_url'] . '/transaction:' . $this->Transac->setLastTransaction($transaction);
+                    }
+                } else {
+                    $this->Session->setFlash(__('Unable to process your payment request, Please try again.'), 'alert', array(
+                        'plugin' => 'BoostCake',
+                        'class' => 'alert-danger'
+                    ));
+                    if (!empty($this->request->data['payment']['fail_url'])) {
+                        $redirectUrl = $this->request->data['payment']['fail_url'];
+                    }
+                }
+                $this->redirect($redirectUrl);
+            } catch (Exception $e) {
+                //debug($e);
+            }
+        }
+    }
+
     private function __setStripe() {
         App::import('Vendor', 'GtwStripe.Stripe', array('file' => 'stripe' . DS . 'lib' . DS . 'Stripe.php'));
         Stripe::setApiKey(Configure::read('GtwStripe.secret_key'));
