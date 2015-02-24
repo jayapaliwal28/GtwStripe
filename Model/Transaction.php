@@ -37,9 +37,9 @@ class Transaction extends AppModel {
             'currency' => $arrDetail['stripe']->currency,
             'transaction_id' => $arrDetail['stripe']->id,
             'customer_id' => $arrDetail['stripe']->customer,
-            'email' => $arrDetail['stripe']->card->name,
-            'brand' => $arrDetail['stripe']->card->brand,
-            'last4' => $arrDetail['stripe']->card->last4,
+            'email' => $arrDetail['stripe']['source']->name,
+            'brand' => $arrDetail['stripe']['source']->brand,
+            'last4' => $arrDetail['stripe']['source']->last4,
             'paid' => $arrDetail['stripe']->paid,
             'captured' => (isset($arrDetail['stripe']->captured)?$arrDetail['stripe']->captured:''),            
         );
