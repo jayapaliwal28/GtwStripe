@@ -1,1 +1,1 @@
-<h1>fail</h1>
+<h1><?php echo __d('gtw_stripe', 'fail');?></h1>

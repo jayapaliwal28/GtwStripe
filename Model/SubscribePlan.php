@@ -9,6 +9,8 @@ class SubscribePlan extends AppModel {
 
     var $name = 'SubscribePlan';
     
+    var $validationDomain = 'gtw_stripe';
+    
     public $validate = array(
         'plan_id' => array(
             'required' => array(

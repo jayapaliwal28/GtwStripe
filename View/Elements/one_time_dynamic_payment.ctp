@@ -14,8 +14,8 @@
                 'class' => 'form-control'
             ),
         ));
-        echo $this->Form->input('email', array('id' => 'card-holder-email'));
-        echo $this->Form->input('card_number', array('id' => 'card-number'));
+        echo $this->Form->input('email', array('id' => 'card-holder-email', 'label' => __d('gtw_stripe', 'Email')));
+        echo $this->Form->input('card_number', array('id' => 'card-number', 'label' => __d('gtw_stripe', 'Card Number')));
         echo $this->Form->hidden('amount', array('id' => 'amount', 'value' => $amount));
         $months = [];
         $years = [];
@@ -25,8 +25,8 @@
         for ($i=date('Y'); $i <= date('Y')+15; $i++) {
             $years[$i] = $i;
         }
-        echo $this->Form->input('month', array('data-stripe' => "exp-month", 'id' => 'card-expiry-month', 'options'=>$months));
-        echo $this->Form->input('year', array('data-stripe' => "exp-year", 'id' => 'card-expiry-year', 'options'=>$years));
+        echo $this->Form->input('month', array('data-stripe' => "exp-month", 'id' => 'card-expiry-month', 'options'=>$months, 'label' => __d('gtw_stripe', 'Month')));
+        echo $this->Form->input('year', array('data-stripe' => "exp-year", 'id' => 'card-expiry-year', 'options'=>$years, 'label' => __d('gtw_stripe', 'Year')));
         echo $this->Form->input('cvv', array('id' => 'cvv'));
         echo $this->Form->input('success_url', array('type' => 'hidden', 'value' => $options['success-url']));
         echo $this->Form->input('fail_url', array('type' => 'hidden', 'value' => $options['fail-url']));

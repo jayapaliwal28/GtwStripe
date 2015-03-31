@@ -8,7 +8,7 @@
 <div class="panel panel-default">
 	<div class="panel-heading">
 		<div class="row">
-            <div class="col-md-8"><h3 class="title">Transactions</h3></div>
+            <div class="col-md-8"><h3 class="title"><?php echo __d('gtw_stripe', 'Transactions'); ?></h3></div>
             <div class="col-md-4 text-right"></div>
 		</div>
 	</div>    
@@ -16,20 +16,20 @@
 		<thead>
 			<tr>
                 <th width='5%'><?php echo $this->Paginator->sort('id'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('User.first','User'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('transaction_type_id','Transaction Type'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('transaction_id','Transaction Id'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('amount'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('brand','Pay Using'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('created', 'Date Added'); ?></th>
-                <th width='10%'><?php echo $this->Paginator->sort('modified', 'Date Updated'); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('User.first',__d('gtw_stripe','User')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('transaction_type_id',__d('gtw_stripe','Transaction Type')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('transaction_id',__d('gtw_stripe','Transaction Id')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('amount', __d('gtw_stripe','Amount')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('brand',__d('gtw_stripe','Pay Using')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('created', __d('gtw_stripe','Date Added')); ?></th>
+                <th width='10%'><?php echo $this->Paginator->sort('modified', __d('gtw_stripe','Date Updated')); ?></th>
 				<th width='10%' class='text-center'>Action</th>
 			</tr>
 		</thead>
 		<tbody>
 			<?php if(empty($transactions)){?>
 				<tr>
-					<td colspan='<?php echo $colCount;?>' class='text-warning'><?php echo __('No record found.')?></td>
+					<td colspan='<?php echo $colCount;?>' class='text-warning'><?php echo __d('gtw_stripe','No record found.')?></td>
 				</tr>
 			<?php 
                 }else{

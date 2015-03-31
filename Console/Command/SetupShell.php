@@ -5,6 +5,6 @@ class SetupShell extends AppShell {
 	
     public function main() {
         $this->TransactionType->setDefaultData();
-        echo "Initial Setup Completed\n";
+        echo __d('gtw_stripe',"Initial Setup Completed"). '\n';
     }
 }

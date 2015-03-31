@@ -56,7 +56,7 @@ class PaymentsController extends AppController {
                     $redirectUrl = $this->referer();
                     if ($charge->paid) {
                         $transaction = $this->Transaction->addTransaction($arrDetail);
-                        $this->Session->setFlash(__('Payment process has been successfully completed'), 'alert', array(
+                        $this->Session->setFlash(__d('gtw_stripe','Payment process has been successfully completed'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-success'
                         ));
@@ -65,7 +65,7 @@ class PaymentsController extends AppController {
                             $redirectUrl = $this->request->data['Stripe']['success_url'] . '/transaction:' . $this->Transac->setLastTransaction($transaction);
                         }
                     } else {
-                        $this->Session->setFlash(__('Unable to process your payment request, Please try again.'), 'alert', array(
+                        $this->Session->setFlash(__d('gtw_stripe','Unable to process your payment request, Please try again.'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-danger'
                         ));
@@ -79,7 +79,7 @@ class PaymentsController extends AppController {
                 }
             }
         }
-        $this->Session->setFlash(__('Unable to process your payment request, Please try again.'), 'alert', array(
+        $this->Session->setFlash(__d('gtw_stripe','Unable to process your payment request, Please try again.'), 'alert', array(
             'plugin' => 'BoostCake',
             'class' => 'alert-danger'
         ));
@@ -113,7 +113,7 @@ class PaymentsController extends AppController {
                         $transaction = $this->Transaction->addTransaction($arrDetail);
                         $planDetail = $this->SubscribePlan->getPlanDetail($arrDetail['plan_id']);
                         $response = $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'], $this->Session->read('Auth.User.id'));
-                        $this->Session->setFlash(__('Subscribe has been successfully completed'), 'alert', array(
+                        $this->Session->setFlash(__d('gtw_stripe','Subscribe has been successfully completed'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-success'
                         ));
@@ -122,7 +122,7 @@ class PaymentsController extends AppController {
                             $redirectUrl = $this->request->data['GtwStripe']['success_url'] . '/transaction:' . $this->Transac->setLastTransaction($transaction);
                         }
                     } else {
-                        $this->Session->setFlash(__('Unable to process your subscribe request, Please try again.'), 'alert', array(
+                        $this->Session->setFlash(__d('gtw_stripe','Unable to process your subscribe request, Please try again.'), 'alert', array(
                             'plugin' => 'BoostCake',
                             'class' => 'alert-danger'
                         ));
@@ -136,7 +136,7 @@ class PaymentsController extends AppController {
                 }
             }
         }
-        $this->Session->setFlash(__('Unable to process your subscribe request, Please try again.'), 'alert', array(
+        $this->Session->setFlash(__d('gtw_stripe','Unable to process your subscribe request, Please try again.'), 'alert', array(
             'plugin' => 'BoostCake',
             'class' => 'alert-danger'
         ));
@@ -172,7 +172,7 @@ class PaymentsController extends AppController {
             $this->Session->write('GtwStripe.' . $amountKey, $this->request->named['amount']);
             return $amountKey;
         } else {
-            $this->Session->setFlash(__('Invalid Opration'), 'alert', array(
+            $this->Session->setFlash(__d('gtw_stripe','Invalid Opration'), 'alert', array(
                 'plugin' => 'BoostCake',
                 'class' => 'alert-danger'
             ));
@@ -187,7 +187,7 @@ class PaymentsController extends AppController {
             $this->set('transactionId', $this->request->named['transaction']);
             $this->set('transactionDetail', $transactionDetail);
         } else {
-            $this->Session->setFlash(__('Invalid Opration'), 'alert', array(
+            $this->Session->setFlash(__d('gtw_stripe','Invalid Opration'), 'alert', array(
                 'plugin' => 'BoostCake',
                 'class' => 'alert-danger'
             ));
@@ -252,7 +252,7 @@ class PaymentsController extends AppController {
                 $redirectUrl = $this->referer();
                 if ($charge->paid) {
                     $transaction = $this->Transaction->addTransaction($arrDetail);
-                    $this->Session->setFlash(__('Payment process has been successfully completed'), 'alert', array(
+                    $this->Session->setFlash(__d('gtw_stripe','Payment process has been successfully completed'), 'alert', array(
                         'plugin' => 'BoostCake',
                         'class' => 'alert-success'
                     ));
@@ -261,7 +261,7 @@ class PaymentsController extends AppController {
                         $redirectUrl = $this->request->data['payment']['success_url'] . '/transaction:' . $this->Transac->setLastTransaction($transaction);
                     }
                 } else {
-                    $this->Session->setFlash(__('Unable to process your payment request, Please try again.'), 'alert', array(
+                    $this->Session->setFlash(__d('gtw_stripe','Unable to process your payment request, Please try again.'), 'alert', array(
                         'plugin' => 'BoostCake',
                         'class' => 'alert-danger'
                     ));

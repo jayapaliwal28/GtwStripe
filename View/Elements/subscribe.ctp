@@ -1,11 +1,11 @@
 <?php
 if ($this->Session->read('Auth.User.id')) {    
     if(!empty($subscribe_id)){
-        echo $this->Html->link('Unsubscribe Now',array('plugin' => 'gtw_stripe', 'controller' => 'subscribe_plans', 'action' => 'unsubscribe_user',$subscribe_id),array('class'=>'btn btn-primary'));
+        echo $this->Html->link(__d('gtw_stripe', 'Unsubscribe Now') ,array('plugin' => 'gtw_stripe', 'controller' => 'subscribe_plans', 'action' => 'unsubscribe_user',$subscribe_id),array('class'=>'btn btn-primary'));
     }else{
         $defaultOptions = array(
             'label' => '',
-            'panel-label' => 'Subscribe',
+            'panel-label' => __d('gtw_stripe', 'Subscribe'),
             'description' => '',
             'amount' => 0,
             'success-url' => $this->Html->url(array('plugin' => 'gtw_stripe', 'controller' => 'payments', 'action' => 'success'), true),
@@ -21,7 +21,7 @@ if ($this->Session->read('Auth.User.id')) {
             data-key="<?php echo Configure::read('GtwStripe.publishable_key'); ?>"
             data-image="<?php echo Configure::read('GtwStripe.site_logo_path'); ?>"
             data-name="<?php echo Configure::read('GtwStripe.site_name'); ?>"
-            data-description='<?php echo "Pro Subscription ($" . $options['amount'] . " per month)" ?>'
+            data-description='<?php echo __d('gtw_stripe', "Pro Subscription ($%s per month)", $options['amount']) ?>'
             data-panel-label="Subscribe"
             data-label="<?php echo $options['label'] ?>"
             data-allow-remember-me="false">
@@ -35,5 +35,5 @@ if ($this->Session->read('Auth.User.id')) {
     }
 } else {
     ?>
-    <label class='label label-warning '><?php echo __('Please login to %s', $options['label']); ?></label>
+    <label class='label label-warning '><?php echo __d('gtw_stripe', 'Please login to %s', $options['label']); ?></label>
 <?php } ?>

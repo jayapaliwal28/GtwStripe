@@ -25,9 +25,9 @@ class SubscribePlansController extends AppController {
             $planDetails=$this->SubscribePlan->findById($planId);
             if($this->SubscribePlan->delete($planId)){
                 $this->plan_delete($planDetails['SubscribePlan']['plan_id']);
-                $this->Session->setFlash(__('Plan has been deleted successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
+                $this->Session->setFlash(__d('gtw_stripe','Plan has been deleted successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
             }else{
-                $this->Session->setFlash(__('Unable to delete plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+                $this->Session->setFlash(__d('gtw_stripe','Unable to delete plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
             }
             $this->redirect($this->referer());
         }
@@ -65,7 +65,7 @@ class SubscribePlansController extends AppController {
                 }
             }
             if($flag){
-                $this->Session->setFlash(__('Plan already exists, Please enter another plan'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+                $this->Session->setFlash(__d('gtw_stripe','Plan already exists, Please enter another plan'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
             }else{
                                
                 //save plan to database
@@ -92,10 +92,10 @@ class SubscribePlansController extends AppController {
                         $p->name = $name;
                         $p->save();
                     }
-                    $this->Session->setFlash(__('Plan has been created successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
+                    $this->Session->setFlash(__d('gtw_stripe','Plan has been created successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
                     $this->redirect(Router::url(array('controller'=>'subscribe_plans','action'=>'index'),true));
                 }else{
-                    $this->Session->setFlash(__('Unable to create plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+                    $this->Session->setFlash(__d('gtw_stripe','Unable to create plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
                 }
             }            
         }
@@ -139,19 +139,19 @@ class SubscribePlansController extends AppController {
             if($subscribeStatus->status == "canceled"){
                 $planDetail = $this->SubscribePlan->getPlanDetail($subscribeStatus->plan->id);
                 $response= $this->SubscribePlanUser->addToSubscribeList($planDetail['SubscribePlan']['id'],  $this->Session->read('Auth.User.id'),'fail');
-                $this->Session->setFlash(__('This Plan has been unsubscribe successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
+                $this->Session->setFlash(__d('gtw_stripe','This Plan has been unsubscribe successfully.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-success'));
             }else{
-                $this->Session->setFlash(__('Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+                $this->Session->setFlash(__d('gtw_stripe','Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
             }
         }else{
-            $this->Session->setFlash(__('Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+            $this->Session->setFlash(__d('gtw_stripe','Unable to unsubscribe this plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
         }
         $this->redirect($this->referer());
     }
     
     public function usertransaction($planId=null){
         if(empty($planId)){
-            $this->Session->setFlash(__('Invalid plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
+            $this->Session->setFlash(__d('gtw_stripe','Invalid plan.'), 'alert', array('plugin' => 'BoostCake','class' => 'alert-danger'));
             $this->redirect($this->referer());
         }
         $planUsers=$this->SubscribePlan->findByPlanId($planId);
@@ -205,7 +205,7 @@ class SubscribePlansController extends AppController {
         $planDetail=$this->SubscribePlan->findByPlanId($planId);
         $title= ' Transactions ' . (empty($planDetail)?'':('for '.$planDetail['SubscribePlan']['plan_id'] .' plan'));
         if(empty($planId) && empty($userId) && empty($allTransaction)){
-            $title='My Transactions';
+            $title=__d('gtw_stripe', 'My Transactions');
         }
         $backUrl = Router::url($this->referer(),true);
         $this->set(compact('planDetail','title','allTransaction','backUrl'));

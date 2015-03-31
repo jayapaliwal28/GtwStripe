@@ -40,15 +40,15 @@ $options = array_merge($defaultOptions, $options);
 		            ),
 		        ));
 		        
-        		echo $this->Form->input('email', array('id' => 'card-holder-email', "placeholder" => 'Email'));
-		        echo $this->Form->input('card_number', array('id' => 'card-number','label' => 'Card Number <small class="text-muted"><span class="cc-brand"></span></small>', "placeholder" => 'Card Number'));
-		        echo $this->Form->input('card-expiry', array('id' => 'card-expiry','label' => 'Card Expiry', 'type' => 'tel', "placeholder" => 'MM / YYYY'));
+        		echo $this->Form->input('email', array('id' => 'card-holder-email', "placeholder" => __d('gtw_stripe', 'Email'), "label" => __d('gtw_stripe', 'Email')));
+		        echo $this->Form->input('card_number', array('id' => 'card-number','label' => __d('gtw_egoods','Card Number') . '<small class="text-muted"><span class="cc-brand"></span></small>', "placeholder" => __d('gtw_egoods','Card Number')));
+		        echo $this->Form->input('card-expiry', array('id' => 'card-expiry','label' => __d('gtw_egoods','Card Expiry'), 'type' => 'tel', "placeholder" => 'MM / YYYY'));
 		        echo $this->Form->input('cvv', array('id' => 'card-cvv', "placeholder" => 'CVV'));
 		        echo $this->Form->input('success_url', array('type' => 'hidden', 'value' => $options['success-url']));
 		        echo $this->Form->input('fail_url', array('type' => 'hidden', 'value' => $options['fail-url']));
 		        echo $this->Form->hidden('amount', array('id' => 'amount', 'value' =>  $options['amount']));
 		        
-		        echo $this->Form->submit('Pay $'. $options['amount'], array('class' => 'btn btn-success btn-block'));
+		        echo $this->Form->submit(__d('gtw_egoods','Pay').' $'. $options['amount'], array('class' => 'btn btn-success btn-block'));
 		        
 		        echo $this->Form->end();
 		        ?>

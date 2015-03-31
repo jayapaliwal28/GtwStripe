@@ -27,7 +27,7 @@ if (function_exists('ini_set')) {
 
 /** @noinspection PhpIncludeInspection */
 if (!include($dispatcher)) {
-    trigger_error('Could not locate CakePHP core files.', E_USER_ERROR);
+    trigger_error(__d('gtw_stripe','Could not locate CakePHP core files.') , E_USER_ERROR);
 }
 unset($paths, $path, $dispatcher, $root, $ds);
 
